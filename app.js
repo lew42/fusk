@@ -96,17 +96,7 @@ var app = window.app = {
 		});
 	},
 	module: function(name, deps, fn){
-		this.modules.loaded(name, deps, fn);
-	},
-	moduleLoaded: function(name, deps, fn){
-		for (var i = 0; i < deps.length; i++){
-			if (this.modules[name]){
-				this.modules[name].then(function(){});
-			}
-		}
-	},
-	createModuleManager: function(name, deps, fn){
-
+		this.modules.define(name, deps, fn);
 	}
 };
 
@@ -132,15 +122,15 @@ var Modules = Base.extend({
 		// returns the Module object, not the module's exported (returned) value)
 		return this.modules[name] ? this.modules[name] : this.make(name);
 	},
-	make: function(name){
+	make: function(name, options){
 		return this.modules[name] = new Module({
 			name: name,
 			app: this.app,
 			modules: this
-		});
+		}, options);
 	},
-	loaded: function(name, deps, fn){
-		this.get(name).loaded(deps, fn);
+	define: function(name, deps, fn){
+		this.get(name).define(deps, fn);
 	}
 });
 
@@ -164,31 +154,32 @@ var Module = Base.extend({
 		this.assign.apply(this, arguments);
 
 		this.exec = this.exec.bind(this);
-
-		if (this.name !== "main")
-			this.request();
 	},
 	request: function(){
 		this.script = document.createElement("script");
 		this.script.src = this.name + ".js";
 		document.head.appendChild(this.script);
 	},
-	getDeps: function(deps){
-		for (var i = 0; i < deps.length; i++){
-			this.deps.push(this.modules.get(deps[i]));
-		}
+	dep: function(name){
+		var dep = this.modules.get(name);
+		this.deps.push(dep);
+		if (!dep.defined)
+			dep.request();
 	},
-	loaded: function(deps, fn){
+	define: function(deps, fn){
 		// called via the app.module interface method
 		this.fn = fn;
 		// must wait for all deps before executing this module
 
 		if (deps.length){
-			this.getDeps(deps);
+			for (var i = 0; i < deps.length; i++)
+				this.dep(deps[i]);
 			this.buildCompoundCB(this.deps, this.fn);
 		} else {
 			this.exec();
 		}
+
+		this.defined = true;
 	},
 	buildCompoundCB: function(){
 		var addNextCB = this.exec;
@@ -210,7 +201,9 @@ var Module = Base.extend({
 		this.isLoaded = true;
 		console.group(this.name, this.args());
 		this.value = this.fn.apply(null, this.args());
+		this.executed = true;
 		this.execCBs();
+		this.finished = true;
 		console.groupEnd();
 	},
 	args: function(){

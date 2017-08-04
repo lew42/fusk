@@ -23,7 +23,7 @@ app.module("main", ["dep1", "dep2", "View"], function(dep1, dep2, View){
 	var obj = {
 		prop: 1,
 		two: true,
-		three: "weeeeeeee???e"
+		three: "weeeeee"
 	};
 
 	var objView = new ObjView({
@@ -31,4 +31,12 @@ app.module("main", ["dep1", "dep2", "View"], function(dep1, dep2, View){
 	});
 
 	document.body.appendChild(objView.el);
+
+	console.log("before");
+
+	app.module("test-module", [], function(){
+		console.log("syncrony?");
+	});
+
+	console.log("after");
 });
