@@ -1,6 +1,6 @@
 ;(function(){
 
-var is = {
+var is = window.is = {
 	arr: function(value){
 		return toString.call(value) === '[object Array]';
 	},
@@ -69,6 +69,8 @@ var assign = function(){
 var Base = function(){
 	this.instantiate.apply(this, arguments);
 };
+
+window.Base = Base;
 
 Base.prototype.assign = assign;
 
