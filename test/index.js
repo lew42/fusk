@@ -1,14 +1,25 @@
 app.module("test", [], function(){
 
-	if (confirm("test2? cancel for test4")){
-		app.module("test2", ["test3"], function(test3){
-			console.log("test2 running. test3:", test3);
-		});
-	} else {
-		app.module("test4", ["test5"], function(test5){
-			console.log("test4 running. test5:", test5);
-		})
-	}
+	// if (confirm("test2? cancel for test4")){
+	// 	app.module("test2", ["test3"], function(test3){
+	// 		console.log("test2 running. test3:", test3);
+	// 	});
+	// } else {
+	// 	app.module("test4", ["test5"], function(test5){
+	// 		console.log("test4 running. test5:", test5);
+	// 	})
+	// }
+	
+	var article = tpl("article.something", {
+				intro: "intro",
+				body: "body",
+				conclusion: "conclusion"
+			});
+
+	document.addEventListener("DOMContentLoaded", function(){
+		document.body.appendChild(article);
+		window.article = article;
+	});
 });
 
 /*

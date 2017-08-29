@@ -1,3 +1,30 @@
+/*
+
+View.use(element) --> looks for _refs?
+
+
+Quarantine:  app.js is way too big.
+What is the minimal initial load?
+
+Hardcoded deps?
+--> need to know when they load
+--> which means we need to predefine a global to register with
+
+If this is just for separating them into files - why not just hardcode them with <script> tags?
+
+Especially for the globals...
+-> App.js and app.js?
+-> is.js
+-> Module.js?
+-> View.js?
+
+
+*/
+
+
+
+
+
 // so, only this.tpl() and el()?
 
 

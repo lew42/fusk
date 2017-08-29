@@ -158,7 +158,7 @@ is.el = function(value){
 	return value && value.nodeType === 1;
 };
 
-var tpl = function(token, children){
+var tpl = window.tpl = function(token, children){
 	var element;
 	if (is.str(token)){
 		token = token.split(".");
@@ -191,12 +191,14 @@ var tpl = function(token, children){
 	return element;
 };
 
-var View = Base.extend({
+var View = window.View = Base.extend({
 	instantiate: function(){
 		this.assign.apply(this, arguments);
 		this.initialize();
 	},
-	initialize: function(){},
+	initialize: function(){
+		this.render();
+	},
 	tpl: function(token, children){
 		var ele = tpl.apply(null, arguments);
 		if (ele._refs){
@@ -212,29 +214,28 @@ var View = Base.extend({
 	}
 });
 
-var view = new View({
-	render: function(){
-		this.tpl("section.my.cool.sect", {
-			one: "hello",
-			two: tpl("aside.e.f.g", {
-				top: "top",
-				middle: "middle",
-				bottom: "bottom"
-			}),
-			three: {
-				auto: "div?",
-				another: "div",
-				extra: tpl(".classes.pls", "muahaha")
-			}
-		});
-	}
-});
+// var view = new View({
+// 	render: function(){
+// 		this.tpl("section.my.cool.sect", {
+// 			one: "hello",
+// 			two: tpl("aside.e.f.g", {
+// 				top: "top",
+// 				middle: "middle",
+// 				bottom: "bottom"
+// 			}),
+// 			three: {
+// 				auto: "div?",
+// 				another: "div",
+// 				extra: tpl(".classes.pls", "muahaha")
+// 			}
+// 		});
+// 	}
+// });
 
-document.addEventListener("DOMContentLoaded", function(){
+// document.addEventListener("DOMContentLoaded", function(){
 
-	view.render();
-	document.body.appendChild(view.el);
-	window.tst = view;
-});
+// 	document.body.appendChild(view.el);
+// 	window.tst = view;
+// });
 
 });
