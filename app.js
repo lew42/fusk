@@ -102,7 +102,7 @@ var app = window.app = {
 	}
 };
 
-var View = Base.extend({
+var View = window.View = Base.extend({
 	instantiate: function(){
 		this.assign.apply(this, arguments);
 		this.initialize();
@@ -234,80 +234,128 @@ var Module = Base.extend({
 });
 
 
-/*
 
-For each dep, we need to create a function that calls the next..?
-
-module("a", ["b", "c", "d"])
-
-b.then(function(){
-	c.then(function(){
-		d.then(function(){
-			a.exec();
-		})
-	})
-})
-
-1.  create exec cb:  
-
-execCB = this.exec;
-
-
-2.  create first dep cb:
-
-firstCB = function(){
-	firstDep.then(execCB)
-}
-
-
-second.then(function(){
-	first.then(exec)
-});
-
-the first cb is
-
-function(){
-	first.then(exec);
-}
-
-and is applied to the second
-
-second.then(firstCB)
-
-the next:
-
-third.then(function(){
-	second.then(function(){
-		first.then(exec);
-	});
-})
-
-nextDep.then(function(){
-	lastDep.then(function(){
-	
-	})
-});
-
-lastDep.then(function(){
-	add
-});
-
-
-addNextCB = function(){
-	exec();
+var el = function(tag){
+	return document.createElement(tag || "div");
 };
-for (var i = 0; i < deps.length; i++){
-	addNextCB = wrapCB(dep[i], addNextCB);
-		--> returns function(){
-			dep[i].then(addNextCB);
+
+
+var addClass = function(el, cls){
+	el.classList.add(cls);
+	return el;
+};
+
+var appendDefault = function(el, value){
+	el.append(value);
+	return el;
+};
+
+var append = function(el, value){
+	if (is.pojo(value)){
+		return appendPojo(el, value);
+	} else if (is.el(value)){
+		return appendEl(el, value);
+	} else {
+		return appendDefault(el, value);
+	}
+};
+
+var promoteRefs = function(frm, to){
+	var refs;
+	if (frm._refs){
+		refs = to._refs = to._refs || {};
+		for (var prop in frm._refs){
+			if (!refs[prop]){
+				refs[prop] = frm._refs[prop];
+			}
 		}
-	deps[i].then(function(){
-		
-	});
-}
+	}
+};
+
+var appendEl = function(el, child){
+	promoteRefs(child, el);
+	el.appendChild(child);
+	return el;
+};
+
+var appendPojo = function(ele, pojo){
+	if (ele._refs){
+		console.info("already has refs");
+	} else {
+		ele._refs = {};
+	}
+
+	var child, value;
+
+	for (var prop in pojo){
+		value = pojo[prop];
+		if (is.el(value)){
+			// use value as child
+			child = addClass(value, prop);
+		} else {
+			// make new child and append value
+			child = append(addClass(el(), prop), value);
+		}
+
+		// append and reference
+		ele._refs[prop] = appendEl(ele, child);
+	}
+
+	return ele;
+};
+
+is.el = function(value){
+	return value && value.nodeType === 1;
+};
+
+var tpl = window.tpl = function(token, children){
+	var element;
+	if (is.str(token)){
+		token = token.split(".");
+		if (token[0] === ""){
+			// token starts with a .class
+			element = el();
+			// remove empty string
+			token = token.slice(1);
+		} else {
+			// token starts with a tag
+			element = el(token[0]);
+			// remove tag
+			token = token.slice(1);
+		}
+
+		for (var j = 0; j < token.length; j++){
+			addClass(element, token[j]);
+		}
+
+		children = [].slice.call(arguments, 1);
+	} else {
+		element = el();
+		children = arguments;
+	}
+
+	for (var i = 0; i < children.length; i++){
+		append(element, children[i]);
+	}
+
+	return element;
+};
+
+View.prototype.tpl = function(token, children){
+	var ele = tpl.apply(null, arguments);
+	if (ele._refs){
+		for (var i in ele._refs){
+			if (!this[i])
+				this[i] = ele._refs[i];
+			else
+				console.warn("collision at", i);
+		}
+	}
+	this.el = ele;
+	return this;
+};
 
 
-*/
 
 
 app.initialize();
